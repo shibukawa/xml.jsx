@@ -181,7 +181,7 @@ class Node
     {
         for (var i = 0; i < this._childNodes.length; i++)
         {
-            this._textContent(result);
+            this._childNodes[i]._textContent(result);
         }
     }
     function textContent () : Nullable.<string>/*DOMString?*/
@@ -193,6 +193,21 @@ class Node
             return null;
         }
         return result.join('');
+    }
+    function _onlyTextNode (checkAll : boolean = false) : boolean
+    {
+        for (var i = 0; i < this._childNodes.length; i++)
+        {
+            if (!this._childNodes[i]._onlyTextNode(true))
+            {
+                return false;
+            }
+        }
+        if (!checkAll)
+        {
+            return true;
+        }
+        return (this instanceof Text);
     }
 
     function insertBefore(node : Node, child : Nullable.<Node>) : Node
@@ -266,7 +281,15 @@ class Document extends Node {
     //var contentType : string/*DOMString*/;
     //var doctype : Nullable.<DocumentType>;
 
+    var _ids : Map.<Element>;
     var _documentElement : Nullable.<Element>;
+
+    function constructor () {
+        super();
+        this._ids = {} : Map.<Element>;
+        this._documentElement = null;
+    }
+
     function documentElement () : Nullable.<Element>
     {
         return this._documentElement;
@@ -280,7 +303,7 @@ class Document extends Node {
         }
         return this._documentElement.getElementsByTagName(localName);
     }
-    
+
     //function getElementsByTagNameNS(namespace : Nullable.<string>/*DOMString?*/, localName : string/*DOMString*/) : Node[];
     function getElementsByClassName(classNames : string/*DOMString*/) : Node[]
     {
@@ -290,8 +313,6 @@ class Document extends Node {
         }
         return this._documentElement.getElementsByClassName(classNames);
     }
-
-    var _ids : Map.<Element>;
 
     function getElementById(elementId : string/*DOMString*/) : Nullable.<Element>
     {
@@ -351,17 +372,18 @@ class Element extends Node
     var _classList : string[];
     var _attributes : Map.<string>;
     var _id : Nullable.<string>;
+    var _tagName : string;
 
     function constructor()
     {
         this._classList = [] : string[];
         this._attributes = {} : Map.<string>;
-        this._id = null;
         this._nodeType = Node.ELEMENT_NODE;
+        this._id = null;
     }
+
     //var namespaceURI : Nullable.<string>/*DOMString?*/;
     //var prefix : Nullable.<string>/*DOMString?*/;
-    var _tagName : string;
     function localName () : string/*DOMString*/
     {
         return this._tagName;
@@ -403,13 +425,13 @@ class Element extends Node
 
     function getAttribute(name : string/*DOMString*/) : Nullable.<string>/*DOMString?*/
     {
-        return this._attributes[name]; 
+        return this._attributes[name];
     }
 
     //function getAttributeNS(namespace : Nullable.<string>/*DOMString?*/, localName : string/*DOMString*/) : Nullable.<string>/*DOMString?*/;
     function setAttribute(name : string/*DOMString*/, value : string/*DOMString*/) : void
     {
-        this._attributes[name] = value; 
+        this._attributes[name] = value;
         if (name == 'id')
         {
             if (this._id != null)
@@ -684,6 +706,7 @@ class CharacterData extends Node {
     //function remove() : void;
 } // end of CharacterData
 
+
 /** @see http://www.w3.org/TR/dom/ */
 class Text extends CharacterData
 {
@@ -767,10 +790,95 @@ class DOMParser
 /** @see http://www.w3.org/TR/DOM-Parsing/ */
 class XMLSerializer
 {
-    function serializeToString(root : Node) : string/*DOMString*/
+    static var _indentCache = {} : Map.<string>;
+
+    static function serializeToString(root : Node, indent : Nullable.<int> = null) : string/*DOMString*/
     {
-        // TODO
-        return '';
+        if (root instanceof Document)
+        {
+            root = (root as Document).documentElement();
+        }
+        var result = [] : string[];
+        XMLSerializer._serializeToString(result, root, 0, indent);
+        if (indent == null)
+        {
+            return result.join('');
+        }
+        else
+        {
+            return result.join('\n');
+        }
+    }
+
+    static function _indent (depth : int, indent : Nullable.<int>) : string
+    {
+        if (indent == null || depth == 0)
+        {
+            return '';
+        }
+        var length = depth * indent;
+        if (XMLSerializer._indentCache.hasOwnProperty(length as string))
+        {
+            return XMLSerializer._indentCache[length as string];
+        }
+        var result = [] : string[];
+        for (var i = 0; i < length; i++)
+        {
+            result.push(' ');
+        }
+        var resultString = result.join('');
+        XMLSerializer._indentCache[length as string] = resultString;
+        return resultString;
+    }
+
+    static function _serializeToString(result : string[], node : Node, depth : int, indent : Nullable.<int>) : void
+    {
+        var children = node._childNodes;
+        if (children.length == 0)
+        {
+            var content = [XMLSerializer._indent(depth, indent)] : string[];
+            if (node instanceof Text)
+            {
+                content.push((node as Text).data());
+            }
+            else if (node instanceof Comment)
+            {
+                content.push('<!-- ', (node as Text).data(), '-->');
+            }
+            else
+            {
+                content.push(XMLSerializer._dumpTag(node as Element) + ' />');
+            }
+            result.push(content.join(''));
+        }
+        else if (node._onlyTextNode())
+        {
+            var element = node as Element;
+            result.push(XMLSerializer._indent(depth, indent) + XMLSerializer._dumpTag(element) + '>' + node.textContent() + '</' + element.tagName() + '>');
+        }
+        else
+        {
+            var element = node as Element;
+            result.push(XMLSerializer._dumpTag(element) + '>');
+            for (var i = 0; i < node._childNodes.length; i++)
+            {
+                XMLSerializer._serializeToString(result, node._childNodes[i], depth + 1, indent);
+            }
+            result.push('</' + element.tagName() + '>');
+        }
+    }
+
+    static function _dumpTag(element : Element) : string
+    {
+        var elementSource = ['<' + element.tagName()] : string[];
+        for (var key in element._attributes)
+        {
+            if (element._attributes.hasOwnProperty(key))
+            {
+                elementSource.push(key + '="' + element._attributes[key] + '"');
+            }
+        }
+        return elementSource.join(' ');
     }
 } // end of XMLSerializer
 
