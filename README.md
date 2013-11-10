@@ -1,6 +1,8 @@
 xml.jsx
 ===========================================
 
+[![Build Status](https://travis-ci.org/shibukawa/xml.jsx.png)](https://travis-ci.org/shibukawa/xml.jsx)
+
 Synopsis
 ---------------
 
@@ -69,6 +71,26 @@ Installation
 ```sh
 $ npm install xml.jsx
 ```
+
+If you want to use this library from other JSX project, install like the following:
+
+```sh
+$ npm install xml.jsx --save-dev
+```
+
+or add like these lines to your parent project's `package.json`:
+
+```js
+   devDependencies: {
+       "xml.jsx": "~0.2.0"
+   },
+   peerDepenencies: {
+       "xml.jsx": "~0.2.0"
+   }
+```
+
+And add `node_modules/xml.jsx/src` as a search path.
+You should add to `peerDepenencies` if your product is library.
 
 API Reference
 ------------------

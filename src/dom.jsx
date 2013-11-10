@@ -859,12 +859,12 @@ class XMLSerializer
         else
         {
             var element = node as Element;
-            result.push(XMLSerializer._dumpTag(element) + '>');
+            result.push(XMLSerializer._indent(depth, indent) + XMLSerializer._dumpTag(element) + '>');
             for (var i = 0; i < node._childNodes.length; i++)
             {
                 XMLSerializer._serializeToString(result, node._childNodes[i], depth + 1, indent);
             }
-            result.push('</' + element.tagName() + '>');
+            result.push(XMLSerializer._indent(depth, indent) + '</' + element.tagName() + '>');
         }
     }
 

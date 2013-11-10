@@ -1,6 +1,10 @@
 Change History
 =================
 
+## 0.2.0 (2013/11/09)
+
+* Fix folder structure.
+
 ## 0.1.1 (2013/10/6)
 
 * Fix bug when DOM parses source it has ID attribute.

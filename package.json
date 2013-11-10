@@ -1,26 +1,29 @@
 {
   "name": "xml.jsx",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "XML implementation in JSX",
   "scripts": {
-    "build": "grunt build",
-    "test": "grunt test",
-    "doc": "grunt doc"
+    "build": "./node_modules/.bin/grunt build",
+    "test": "./node_modules/.bin/grunt test",
+    "doc": "./node_modules/.bin/grunt doc"
   },
   "engines" : { "node" : ">=0.8.0" },
   "keywords": [
     "jsx",
     "altjs",
-    "lib"
+    "lib",
+    "xml",
+    "dom",
+    "sax"
   ],
-  "main": "./lib/xml.jsx",
+  "main": "./src/xml.jsx",
   "homepage": "https://github.com/shibukawa/xml.jsx",
   "bugs": {
     "url": "https://github.com/shibukawa/xml.jsx/issues"
   },
   "directories": {
     "doc": "./doc",
-    "lib": "./lib",
+    "lib": "./src",
     "test": "./test"
   },
   "repository": {
@@ -30,7 +33,8 @@
   "devDependencies": {
     "grunt-contrib-watch": "~0.5.3",
     "grunt": "~0.4.1",
-    "grunt-jsx": ">=0.1.3"
+    "grunt-jsx": ">=0.1.5",
+    "grunt-cli": "~0.1.10"
   },
   "author": "shibukawa",
   "license": "MIT"
